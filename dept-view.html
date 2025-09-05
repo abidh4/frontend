@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Department View</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      background: #f5f5f5;
+      min-height: 100vh;
+    }
+
+    h1 { margin-bottom: 20px; color: #333; }
+
+    .options-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    button.option {
+      padding: 15px 25px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.3s;
+      background-color: #4CAF50;
+      color: white;
+      font-weight: 600;
+    }
+
+    button.option:hover { transform: scale(1.05); }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    input, textarea {
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      width: 100%;
+    }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      justify-content: flex-end;
+    }
+
+    button.submit { background: #2196F3; color: white; font-weight: 600; border: none; border-radius: 8px; padding: 12px 20px; cursor: pointer; transition: background 0.3s, transform 0.2s; }
+    button.submit:hover { background: #1976D2; transform: scale(1.03); }
+
+    button.clear { background: #FFC107; color: black; border: none; border-radius: 8px; padding: 12px 20px; cursor: pointer; transition: background 0.3s, transform 0.2s; }
+    button.clear:hover { background: #FFA000; transform: scale(1.03); }
+
+    button.cancel { background: #F44336; color: white; border: none; border-radius: 8px; padding: 12px 20px; cursor: pointer; transition: background 0.3s, transform 0.2s; }
+    button.cancel:hover { background: #D32F2F; transform: scale(1.03); }
+
+    table {
+      width: 100%;
+      max-width: 800px;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+    th { background-color: #4CAF50; color: white; }
+    td button { padding: 5px 10px; border-radius: 6px; border: none; cursor: pointer; background: #2196F3; color: white; }
+    td button:hover { background: #1976D2; }
+
+    @media (max-width: 600px) {
+      button.option { font-size: 1rem; padding: 12px 20px; }
+      form { padding: 15px; }
+      .button-group { flex-direction: column; }
+      .button-group button { width: 100%; }
+      table { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Department View</h1>
+
+  <div class="options-container" id="optionsContainer">
+    <button class="option" id="admitBtn">Admit Student</button>
+    <button class="option" id="pendingBtn">Pending Requests</button>
+  </div>
+
+  <!-- Admit Student Form -->
+  <div id="formContainer" style="display:none;">
+    <form id="admitForm" action="/admit-student" method="POST">
+      <input type="text" name="name" placeholder="Name" required>
+      <input type="text" name="fathersName" placeholder="Father's Name" required>
+      <input type="text" name="mothersName" placeholder="Mother's Name" required>
+      <input type="text" name="bloodGroup" placeholder="Blood Group" required>
+      <input type="email" name="email" placeholder="E-mail" required>
+      <input type="tel" name="phone" placeholder="Phone" required>
+      <input type="number" name="meritPosition" placeholder="Merit Position" required>
+      <textarea name="address" placeholder="Address" required></textarea>
+
+      <div class="button-group">
+        <button type="submit" class="submit">Submit</button>
+        <button type="button" class="clear" id="clearBtn">Clear</button>
+        <button type="button" class="cancel" id="cancelBtn">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Pending Requests Table -->
+  <div id="pendingContainer" style="display:none; width:100%; max-width:800px;">
+    <button id="backBtn" style="margin-bottom:15px; padding:10px 20px; border:none; border-radius:8px; background:#F44336; color:white; cursor:pointer; font-weight:600;">
+    Back
+  </button>
+    <table id="pendingTable">
+      <thead>
+        <tr>
+          <th>Roll</th>
+          <th>Hall</th>
+          <th>TrxID</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamic rows will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const admitBtn = document.getElementById('admitBtn');
+    const pendingBtn = document.getElementById('pendingBtn');
+    const formContainer = document.getElementById('formContainer');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const clearBtn = document.getElementById('clearBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const admitForm = document.getElementById('admitForm');
+    const pendingContainer = document.getElementById('pendingContainer');
+    const pendingTableBody = document.querySelector('#pendingTable tbody');
+
+    // Show Admit Student Form
+    admitBtn.addEventListener('click', () => {
+      formContainer.style.display = 'block';
+      pendingContainer.style.display = 'none';
+      optionsContainer.style.display = 'none';
+    });
+
+    // Clear form
+    clearBtn.addEventListener('click', () => admitForm.reset());
+
+    // Cancel form
+    cancelBtn.addEventListener('click', () => {
+      formContainer.style.display = 'none';
+      optionsContainer.style.display = 'flex';
+    });
+
+    // Fetch and display pending requests
+    pendingBtn.addEventListener('click', async () => {
+      formContainer.style.display = 'none';
+      pendingContainer.style.display = 'block';
+      optionsContainer.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/pending-requests'); // Replace with your API endpoint
+        const data = await res.json();
+
+        // Clear existing rows
+        pendingTableBody.innerHTML = '';
+
+        if (data.length === 0) {
+          // No data, leave table empty
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.setAttribute('colspan', '4');
+          td.textContent = 'No pending requests found';
+          tr.appendChild(td);
+          pendingTableBody.appendChild(tr);
+          return;
+        }
+
+        // Populate table rows
+        data.forEach(item => {
+          const tr = document.createElement('tr');
+
+          const rollTd = document.createElement('td');
+          rollTd.textContent = item.roll;
+          tr.appendChild(rollTd);
+
+          const hallTd = document.createElement('td');
+          hallTd.textContent = item.hall;
+          tr.appendChild(hallTd);
+
+          const trxTd = document.createElement('td');
+          trxTd.textContent = item.trxID;
+          tr.appendChild(trxTd);
+
+          const actionTd = document.createElement('td');
+          const approveBtn = document.createElement('button');
+          approveBtn.textContent = 'Approve';
+          approveBtn.addEventListener('click', () => {
+            alert(`Approved ${item.roll}`);
+            // Optionally send approval request to API
+          });
+          actionTd.appendChild(approveBtn);
+          tr.appendChild(actionTd);
+
+          pendingTableBody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('Error fetching pending requests:', err);
+        pendingTableBody.innerHTML = `<tr><td colspan="4">Error fetching data</td></tr>`;
+      }
+    });
+    const backBtn = document.getElementById('backBtn');
+
+  backBtn.addEventListener('click', () => {
+    pendingContainer.style.display = 'none';
+    optionsContainer.style.display = 'flex';
+  });
+  </script>
+
+</body>
+</html>
