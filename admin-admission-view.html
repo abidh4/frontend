@@ -126,9 +126,18 @@
       background: #ccc;
       color: #000;
     }
+    #hallName {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+      border: 1px solid #044f72;
+      box-sizing: border-box;
+    }
   </style>
 </head>
-<body>
+<body style="text-align: center;">
   <header>
     <h1>Admin Admission View</h1>
   </header>
@@ -144,8 +153,19 @@
       <h2>Admit Student</h2>
       <label>Roll Number</label>
       <input type="text" id="rollNumber" />
-      <label>Hall Name</label>
-      <input type="text" id="hallName" />
+      <!-- Hall Name input field added -->
+          <label>Hall Name</label>
+          <select id="hallName">
+          <option value="">-- Select Hall --</option>
+          <option value="Datta Hall">Datta Hall</option>
+          <option value="Bijoy-24 Hall">Bijoy-24 Hall</option>
+          <option value="Nazrul Hall">Nazrul Hall</option>
+          <option value="Shuniti Shanti Hall">Shuniti Shanti Hall</option>
+          <option value="Foyzunnesa Hall">Foyzunnesa Hall</option>
+          </select>
+          <br><br>
+
+
       <label>Password</label>
       <input type="password" id="password" />
       <div class="modal-buttons">
@@ -218,6 +238,7 @@ document.getElementById("proceedBtn").addEventListener("click", async () => {
 });
 
 document.getElementById("fetchBtn").addEventListener("click", async () => {
+  
   const output = document.getElementById("output");
   output.innerHTML = "<p class='message'>Loading...</p>";
 
