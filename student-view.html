@@ -1,139 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student View</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      background: #f5f5f5;
-      padding: 20px;
-    }
-    h1 {
-      margin-bottom: 30px;
-      font-size: 2rem;
-      color: #333;
-    }
-    .card {
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      max-width: 400px;
-      width: 100%;
-      margin: 20px auto;
-      text-align: center;
-      animation: fadeIn 0.5s ease-in-out;
-    }
-    .card h2 {
-      margin-bottom: 10px;
-      color: #4CAF50;
-    }
-    .card p {
-      margin: 8px 0;
-      font-size: 1rem;
-      color: #444;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .button-container {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-    }
-    button {
-      padding: 12px 18px;
-      margin: 5px;
-      font-size: 1rem;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: transform 0.2s, background 0.3s;
-    }
-    button:hover { transform: scale(1.05); }
-    .exam-btn { background: #5a85a8; color: white; }
-    .next-btn { background: #4CAF50; color: white; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student View</title>
+<style>
+  body { font-family: Arial,sans-serif; background:#eef2f7; display:flex; flex-direction:column; align-items:center; padding:20px; }
+  h1 { margin-bottom:20px; color:#333; }
+  .card { background:#fff; padding:20px 25px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.15); max-width:480px; width:100%; margin-bottom:20px; text-align:center; }
+  button { padding:10px 18px; margin:5px; border:none; border-radius:8px; cursor:pointer; font-weight:600; transition: transform 0.2s; }
+  button:hover { transform: scale(1.05); }
+  .exam-btn { background:#5a85a8; color:#fff; }
+  .next-btn { background:#4CAF50; color:#fff; }
+
+  /* Courses checkbox */
+  #courseSelectContainer { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:15px; }
+  .course-checkbox { display:flex; align-items:center; gap:6px; background:#f1f1f1; padding:6px 10px; border-radius:6px; font-size:0.95rem; cursor:pointer; }
+  .course-checkbox input[type="checkbox"] { cursor:pointer; width:16px; height:16px; }
+  .course-checkbox:hover { background:#e0e0e0; }
+  select, input[type="text"] { width:90%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ccc; font-size:1rem; }
+</style>
 </head>
 <body>
-  <h1>Student View</h1>
+<h1>Student View</h1>
 
-  <div id="studentCard" class="card"></div>
+<div id="studentCard" class="card"></div>
+<div class="button-container">
+  <button id="registerExamButton" class="exam-btn">Register for Exam</button>
+</div>
+<div id="examOptionsCard" style="display:none;"></div>
 
-  <div class="button-container">
-    <button id="registerExamButton" class="exam-btn">Register for Exam</button>
-  </div>
+<script>
+let fetchedStudent;
+let lastRequestId = null;
+let pollingInterval = null;
 
-  <div id="examOptionsCard" style="display:none;"></div>
+// Load student data
+async function loadStudentData() {
+  try {
+    const res = await fetch('http://localhost:3005/admitted-students');
+    fetchedStudent = await res.json();
+    document.getElementById("studentCard").innerHTML = `
+      <h2>${fetchedStudent.studentName}</h2>
+      <p><b>Department:</b> ${fetchedStudent.deptName}</p>
+      <p><b>Session:</b> ${fetchedStudent.studentSession}</p>
+      <p><b>Roll:</b> ${fetchedStudent.rollNumber}</p>
+    `;
+  } catch(e){ alert("Error loading student: "+e.message); }
+}
+loadStudentData();
 
-  <script>
-    let fetchedStudent;
-    async function loadStudentData() {
-      try {
-        const response = await fetch('http://localhost:3005/admitted-students');
-        if (!response.ok) throw new Error("Failed to fetch student data");
-        const student = await response.json();
-        fetchedStudent = student;
-        document.getElementById("studentCard").innerHTML = `
-          <h2>${student.studentName}</h2>
-          <p><b>Department:</b> ${student.deptName}</p>
-          <p><b>Session:</b> ${student.studentSession}</p>
-          <p><b>Roll:</b> ${student.rollNumber}</p>
-        `;
-      } catch (err) {
-        alert("Error loading student data: " + err.message);
-      }
-    }
+document.getElementById("registerExamButton").addEventListener("click", showExamOptions);
 
-    loadStudentData();
+// Show exam type options
+function showExamOptions() {
+  const container = document.getElementById("examOptionsCard");
+  container.innerHTML = `
+    <div class="card">
+      <h3>Select Exam Type</h3>
+      <button class="next-btn" onclick="showExamForm('Semester Final')">Semester Final</button>
+      <br><br>
+      <button class="next-btn" onclick="showExamForm('Improvement')">Improvement</button>
+      <br><br>
+      <button class="next-btn" onclick="showExamForm('F-Removal')">F-Removal</button>
+    </div>
+  `;
+  container.style.display = "block";
+}
 
-    document.getElementById("registerExamButton").addEventListener("click", () => {
-      const container = document.getElementById("examOptionsCard");
-      container.innerHTML = `
-        <div class="card">
-          <h3>Select Exam Type</h3>
-          <button class="next-btn" onclick="registerForExam('Semester Final')">Semester Final</button>
-          <br><br>
-          <button class="next-btn" onclick="registerForExam('Improvement')">Improvement</button>
-          <br><br>
-          <button class="next-btn" onclick="registerForExam('F-Removal')">F-Removal</button>
-        </div>
-      `;
-      container.style.display = "block";
+// Show exam registration form
+function showExamForm(examType) {
+  const container = document.getElementById("examOptionsCard");
+  const courses = Array.from({length:12},(_,i)=>`Course ${i+1}`);
+  const coursesHTML = courses.map((c,i)=>`
+    <div class="course-checkbox">
+      <input type="checkbox" id="course${i}" value="${c}"> 
+      <label for="course${i}">${c}</label>
+    </div>`).join("");
+
+  container.innerHTML = `
+    <div class="card">
+      <h3>You are applying for ${examType}</h3>
+      <label>Semester:</label>
+      <select id="semesterSelect">
+        ${Array.from({length:8},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join("")}
+      </select>
+      <p>Select Courses (max 12):</p>
+      <div id="courseSelectContainer">${coursesHTML}</div>
+      <p>Payable Amount: 5000</p>
+      <button class="next-btn" onclick="showTrxForm('${examType}')">Next</button>
+    </div>
+  `;
+}
+
+// Show transaction input form
+function showTrxForm(examType){
+  const semester = document.getElementById("semesterSelect").value;
+  const courses = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(c=>c.value);
+  if(!semester || courses.length===0){ alert("Select semester & at least one course"); return; }
+  if(courses.length>12){ alert("Max 12 courses allowed"); return; }
+
+  const container = document.getElementById("examOptionsCard");
+  container.innerHTML = `
+    <div class="card">
+      <h3>Enter Transaction ID for ${examType}</h3>
+      <input type="text" id="trxID" placeholder="Enter Transaction ID"><br><br>
+      <button class="next-btn" id="submitBtn">Submit</button>
+    </div>
+  `;
+  document.getElementById("submitBtn").addEventListener("click", ()=>submitExam(examType,semester,courses));
+}
+
+// Submit exam registration
+async function submitExam(examType,semester,courses){
+  const trxID = document.getElementById("trxID").value.trim();
+  if(!trxID){ alert("Transaction ID required"); return; }
+
+  try{
+    const res = await fetch('http://localhost:3005/register-exam', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        rollNumber: fetchedStudent.rollNumber,
+        eMail: fetchedStudent.eMail,
+        examType, semester, courses,
+        payableAmount:5000, trxID
+      })
     });
 
-    async function registerForExam(type) {
-      try {
-        const res = await fetch("http://localhost:3005/register-exam", {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            examType: type, 
-            rollNumber:fetchedStudent.rollNumber, 
-            date: new Date(), 
-            eMail:fetchedStudent.eMail 
-          })
-        });
-        if(res.status === 409) {
-          alert("You have already registered for " + type);
-          return;
+    if(!res.ok) throw new Error("Failed to register request");
+    const data = await res.json();
+    lastRequestId = data.data._id;
+
+    document.getElementById("examOptionsCard").innerHTML = `<div class="card"><h3>Submitted. Waiting for Approval...</h3></div>`;
+
+    // Start polling for approval
+    pollApproval(examType, semester);
+  } catch(e){
+    document.getElementById("examOptionsCard").innerHTML = `<div class="card"><h3>Error: ${e.message}</h3></div>`;
+  }
+}
+
+// Poll backend for approval and PDF
+function pollApproval(examType, semester){
+  if(pollingInterval) clearInterval(pollingInterval);
+
+  pollingInterval = setInterval(async ()=>{
+    try{
+      const res = await fetch(`http://localhost:3005/get-approved-pdf/${fetchedStudent.rollNumber}/${semester}`);
+      if(res.ok){
+        const data = await res.json();
+        if(data.pdfBase64){
+          clearInterval(pollingInterval);
+
+          // Download PDF
+          const link = document.createElement('a');
+          link.href = `data:application/pdf;base64,${data.pdfBase64}`;
+          link.download = `${examType}_registration.pdf`;
+          link.click();
+
+          document.getElementById("examOptionsCard").innerHTML = `<div class="card"><h3>Approved! PDF downloaded.</h3></div>`;
         }
-        if (!res.ok) throw new Error("Failed to register");
-        alert("Successfully registered for " + type);
-      } catch (err) {
-        alert("Error: " + err.message);
       }
+    } catch(err){
+      console.log("Polling error:", err.message);
     }
-  </script>
+  }, 3000); // poll every 3 seconds
+}
+</script>
 </body>
 </html>

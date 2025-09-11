@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Exam Control</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    h1 { text-align: center; margin-bottom: 30px; color: #333; }
+    button {
+      padding: 10px 18px;
+      margin: 5px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.3s;
+    }
+    button:hover { transform: scale(1.05); }
+    .pending-btn { background: #5a85a8; color: white; display: block; margin: 0 auto 20px auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td { padding: 12px 15px; border-bottom: 1px solid #ddd; text-align: center; }
+    th { background: #4CAF50; color: white; font-weight: bold; }
+    tr:hover { background-color: #f1f1f1; }
+    .action-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .approve-btn { background: #4CAF50; }
+    .reject-btn { background: #e74c3c; }
+  </style>
+</head>
+<body>
+  <h1>Admin Exam Control</h1>
+
+  <button id="pendingRequestsBtn" class="pending-btn">Pending Requests</button>
+
+  <div id="tableContainer"></div>
+
+  <script>
+    const pendingBtn = document.getElementById("pendingRequestsBtn");
+    const tableContainer = document.getElementById("tableContainer");
+
+    pendingBtn.addEventListener("click", fetchPendingRequests);
+
+    async function fetchPendingRequests() {
+      try {
+        const response = await fetch("http://localhost:3005/pending-exam-req");
+        if (!response.ok) throw new Error("Failed to fetch pending requests");
+        const data = await response.json();
+
+        if (!data || data.length === 0) {
+          tableContainer.innerHTML = "<p>No pending requests found.</p>";
+          return;
+        }
+
+        let tableHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Roll Number</th>
+                <th>Email</th>
+                <th>Exam Type</th>
+                <th>Semester</th>
+                <th>Courses</th>
+                <th>Payable Amount</th>
+                <th>Transaction ID</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(req => `
+                <tr id="row-${req._id}">
+                  <td>${req.rollNumber}</td>
+                  <td>${req.eMail}</td>
+                  <td>${req.examType}</td>
+                  <td>${req.semester}</td>
+                  <td>${req.courses.join(", ")}</td>
+                  <td>${req.payableAmount}</td>
+                  <td>${req.trxID}</td>
+                  <td>${new Date(req.date).toLocaleString()}</td>
+                  <td>
+                    <button class="action-btn approve-btn" onclick="approveRequest('${req._id}')">Approve</button>
+                    <button class="action-btn reject-btn" onclick="rejectRequest('${req._id}')">Reject</button>
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+
+        tableContainer.innerHTML = tableHTML;
+
+      } catch (err) {
+        tableContainer.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+      }
+    }
+
+    async function approveRequest(id) {
+      try {
+        const res = await fetch(`http://localhost:3005/approve-exam/${id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+        if (!res.ok) throw new Error("Failed to approve request");
+        document.getElementById(`row-${id}`).remove();
+        alert("Request approved successfully");
+      } catch (err) {
+        alert("Error approving request: " + err.message);
+      }
+    }
+
+    async function rejectRequest(id) {
+      try {
+        const res = await fetch(`http://localhost:3005/reject-exam/${id}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" }
+        });
+        if (!res.ok) throw new Error("Failed to reject request");
+        document.getElementById(`row-${id}`).remove();
+        alert("Request rejected successfully");
+      } catch (err) {
+        alert("Error rejecting request: " + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
