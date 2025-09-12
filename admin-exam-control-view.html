@@ -6,58 +6,75 @@
   <title>Admin Exam Control</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f4f7fb;
       padding: 20px;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #333;
     }
-    h1 { text-align: center; margin-bottom: 30px; color: #333; }
-    button {
-      padding: 10px 18px;
-      margin: 5px;
+    h1 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+      font-size: 1.8rem;
+    }
+    .status-message {
+      margin: 15px 0;
+      font-weight: 500;
       font-size: 1rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: transform 0.2s, background 0.3s;
+      color: #666;
+      text-align: center;
     }
-    button:hover { transform: scale(1.05); }
-    .pending-btn { background: #5a85a8; color: white; display: block; margin: 0 auto 20px auto; }
     table {
-      width: 100%;
+      width: 95%;
+      max-width: 1200px;
       border-collapse: collapse;
       margin-top: 20px;
       background: #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
       overflow: hidden;
+      font-size: 0.95rem;
     }
-    th, td { padding: 12px 15px; border-bottom: 1px solid #ddd; text-align: center; }
-    th { background: #4CAF50; color: white; font-weight: bold; }
+    th, td {
+      padding: 12px 15px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      background: #2c3e50;
+      color: white;
+      font-weight: bold;
+    }
+    tr:nth-child(even) { background-color: #f9f9f9; }
     tr:hover { background-color: #f1f1f1; }
     .action-btn {
-      padding: 6px 12px;
+      padding: 8px 14px;
       border-radius: 6px;
       color: white;
       font-weight: 600;
       cursor: pointer;
+      border: none;
+      margin: 2px;
+      transition: transform 0.2s, background 0.3s;
     }
+    .action-btn:hover { transform: scale(1.05); }
     .approve-btn { background: #4CAF50; }
+    .approve-btn:hover { background: #3d9442; }
     .reject-btn { background: #e74c3c; }
+    .reject-btn:hover { background: #c0392b; }
   </style>
 </head>
 <body>
-  <h1>Admin Exam Control</h1>
+  <h1>📋 Admin Exam Control</h1>
 
-  <button id="pendingRequestsBtn" class="pending-btn">Pending Requests</button>
-
+  <div id="status" class="status-message">Loading pending requests...</div>
   <div id="tableContainer"></div>
 
   <script>
-    const pendingBtn = document.getElementById("pendingRequestsBtn");
-    const tableContainer = document.getElementById("tableContainer");
-
-    pendingBtn.addEventListener("click", fetchPendingRequests);
+    let pollingInterval = null;
 
     async function fetchPendingRequests() {
       try {
@@ -65,10 +82,16 @@
         if (!response.ok) throw new Error("Failed to fetch pending requests");
         const data = await response.json();
 
+        const statusDiv = document.getElementById("status");
+        const tableContainer = document.getElementById("tableContainer");
+
         if (!data || data.length === 0) {
-          tableContainer.innerHTML = "<p>No pending requests found.</p>";
+          tableContainer.innerHTML = "";
+          statusDiv.textContent = "✅ No pending requests found.";
           return;
         }
+
+        statusDiv.textContent = `📌 ${data.length} pending request(s)`;
 
         let tableHTML = `
           <table>
@@ -97,8 +120,8 @@
                   <td>${req.trxID}</td>
                   <td>${new Date(req.date).toLocaleString()}</td>
                   <td>
-                    <button class="action-btn approve-btn" onclick="approveRequest('${req._id}')">Approve</button>
-                    <button class="action-btn reject-btn" onclick="rejectRequest('${req._id}')">Reject</button>
+                    <button class="action-btn approve-btn" onclick="approveRequest('${req._id}')">✔ Approve</button>
+                    <button class="action-btn reject-btn" onclick="rejectRequest('${req._id}')">✖ Reject</button>
                   </td>
                 </tr>
               `).join("")}
@@ -109,7 +132,7 @@
         tableContainer.innerHTML = tableHTML;
 
       } catch (err) {
-        tableContainer.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+        document.getElementById("status").textContent = "❌ Error: " + err.message;
       }
     }
 
@@ -121,9 +144,9 @@
         });
         if (!res.ok) throw new Error("Failed to approve request");
         document.getElementById(`row-${id}`).remove();
-        alert("Request approved successfully");
+        document.getElementById("status").textContent = "✅ Request approved successfully.";
       } catch (err) {
-        alert("Error approving request: " + err.message);
+        document.getElementById("status").textContent = "❌ Error approving request: " + err.message;
       }
     }
 
@@ -135,11 +158,15 @@
         });
         if (!res.ok) throw new Error("Failed to reject request");
         document.getElementById(`row-${id}`).remove();
-        alert("Request rejected successfully");
+        document.getElementById("status").textContent = "⚠️ Request rejected successfully.";
       } catch (err) {
-        alert("Error rejecting request: " + err.message);
+        document.getElementById("status").textContent = "❌ Error rejecting request: " + err.message;
       }
     }
+
+    // Start polling every 3 seconds
+    fetchPendingRequests(); // first fetch
+    pollingInterval = setInterval(fetchPendingRequests, 3000);
   </script>
 </body>
 </html>
