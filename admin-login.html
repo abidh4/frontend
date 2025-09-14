@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Administration Login - Comilla University</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="hall-login-style.css">
+</head>
+<body>
+    <form class="login-container" id="adminLoginForm" autocomplete="off">
+        <button type="button" class="back-btn" onclick="window.location.href='index.html'">&larr; Back</button>
+        <div class="login-title">Administration Login</div>
+        <div class="warning" id="warningMsg" style="display:none;">There is an error, try again.</div>
+        <label for="adminType">Administration Type</label>
+        <select id="adminType" name="adminType" required>
+            <option value="">Select Administration Type</option>
+            <option value="Transport">Transport</option>
+            <option value="Exam Control">Exam Control</option>
+            <option value="Others">Others</option>
+        </select>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Enter your password">
+        <div style="margin-bottom: 1rem;">
+            <input type="checkbox" id="showPassword" style="margin-right: 6px;">
+            <label for="showPassword" style="font-size:0.98rem; color:#005892; cursor:pointer;">Show Password</label>
+        </div>
+        <div class="button-row">
+            <button type="submit" class="submit-btn">Submit</button>
+            <button type="button" class="clear-btn" id="clearBtn">Clear</button>
+        </div>
+    </form>
+    <script>
+        const adminLoginForm = document.getElementById('adminLoginForm');
+        const passwordInput = document.getElementById('password');
+        const showPassword = document.getElementById('showPassword');
+        const clearBtn = document.getElementById('clearBtn');
+        const warningMsg = document.getElementById('warningMsg');
+
+        showPassword.addEventListener('change', function() {
+            passwordInput.type = this.checked ? 'text' : 'password';
+        });
+
+        clearBtn.addEventListener('click', function() {
+            adminLoginForm.reset();
+            warningMsg.style.display = "none";
+        });
+
+        adminLoginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            warningMsg.style.display = "none";
+
+            const adminType = adminLoginForm.adminType.value.trim();
+            const password = passwordInput.value;
+
+            // Example API endpoint
+            const apiUrl = '/api/admin-login';
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminType, password })
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    window.location.href = data.redirect || '/admin-dashboard.html';
+                } else {
+                    throw new Error();
+                }
+            } catch {
+                adminLoginForm.reset();
+                warningMsg.textContent = "There is an error, try again.";
+                warningMsg.style.display = "block";
+                setTimeout(() => {
+                    warningMsg.style.display = "none";
+                }, 5000);
+            }
+        });
+    </script>
+    <style>
+        .back-btn {
+            background: none;
+            border: none;
+            color: #005892;
+            font-size: 1rem;
+            margin-bottom: 0.7rem;
+            cursor: pointer;
+            text-align: left;
+            padding: 0;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .back-btn:hover {
+            color: #1791d8;
+            text-decoration: underline;
+        }
+        .warning {
+            background: #ffeded;
+            color: #c0392b;
+            border: 1px solid #e57373;
+            border-radius: 6px;
+            padding: 0.7rem 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1rem;
+            display: none;
+        }
+    </style>
+</body>
+</html>

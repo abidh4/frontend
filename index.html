@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comilla University</title>
+    <link rel="stylesheet" href="index-style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav>
+        <div class="navbar-container">
+            <div class="navbar-title-logo">
+                <img src="cou-logo-image.png" alt="Comilla University Logo" class="navbar-logo">
+                <div class="navbar-title">
+                    <span class="navbar-title-main">Comilla University</span><br>
+                    <span class="navbar-title-address">Kotbari, Cumilla</span>
+                </div>
+            </div>
+            <!-- Hamburger menu for mobile -->
+            <div class="hamburger" id="hamburger-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="navbar-links" id="navbar-links">
+                <div class="nav-item">
+                    <a href="student-view.html">Student</a>
+                </div>
+                <div class="nav-item">
+                    <a href="dept-view.html">Department</a>
+                </div>
+                 <div class="nav-item dropdown">
+        <a href="">Administration</a> <!-- Down arrow -->
+        <div class="dropdown-content">
+            <a href="admin-admission-view.html">Admission</a>
+            <a href="admin-exam-control-view.html">Exam Control</a>
+        </div>
+    </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main>
+        <!-- About Section -->
+        <section class="about-section">
+            <h2>About Comilla University</h2>
+            <p>
+                Comilla University (CoU) is a prominent public university in Bangladesh, dedicated to academic excellence, research, and innovation. Established to foster knowledge and leadership, CoU offers a vibrant campus life, diverse academic programs, and a commitment to nurturing future leaders. The university is renowned for its modern facilities, experienced faculty, and a supportive learning environment.
+            </p>
+        </section>
+
+        <!-- Facilities Section -->
+        <section class="facilities-section">
+            <h2 class="facilities-title">Facilities at CoU</h2>
+            <div class="cards-container">
+                <div class="facility-card">
+                    <h3>Modern Library</h3>
+                    <p>A well-equipped library with a vast collection of books, journals, and digital resources to support students and researchers.</p>
+                </div>
+                <div class="facility-card">
+                    <h3>Student Halls</h3>
+                    <p>Comfortable and secure residential halls for students, fostering a vibrant and inclusive campus community.</p>
+                </div>
+                <div class="facility-card">
+                    <h3>Laboratories</h3>
+                    <p>State-of-the-art laboratories for science, engineering, and technology students to enhance practical learning.</p>
+                </div>
+                <div class="facility-card">
+                    <h3>Sports Complex</h3>
+                    <p>Extensive sports facilities including fields, courts, and a gymnasium to promote physical fitness and teamwork.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2025 Comilla University. All rights reserved.<br>
+        <span class="footer-dev">Developed by Group 2<br>ICT (Session: 2021-22)</span>
+    </footer>
+
+    <script>
+        // Hamburger menu toggle for mobile
+        const hamburger = document.getElementById('hamburger-menu');
+        const navLinks = document.getElementById('navbar-links');
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>
