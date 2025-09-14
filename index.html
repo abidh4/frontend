@@ -25,18 +25,18 @@
             </div>
             <div class="navbar-links" id="navbar-links">
                 <div class="nav-item">
-                    <a href="student-view.html">Student</a>
+                    <a href="http://localhost:3005/student" id="student-link">Student</a>
                 </div>
                 <div class="nav-item">
-                    <a href="dept-view.html">Department</a>
+                    <a href="http://localhost:3005/dept" id="dept-link">Department</a>
                 </div>
-                 <div class="nav-item dropdown">
-        <a href="">Administration</a> <!-- Down arrow -->
-        <div class="dropdown-content">
-            <a href="admin-admission-view.html">Admission</a>
-            <a href="admin-exam-control-view.html">Exam Control</a>
-        </div>
-    </div>
+                <div class="nav-item dropdown">
+                    <a href="#">Administration</a>
+                    <div class="dropdown-content">
+                        <a href="http://localhost:3005/admission" id="admission-link">Admission</a>
+                        <a href="http://localhost:3005/exam" id="exam-link">Exam Control</a>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
@@ -82,7 +82,6 @@
     </footer>
 
     <script>
-        // Hamburger menu toggle for mobile
         const hamburger = document.getElementById('hamburger-menu');
         const navLinks = document.getElementById('navbar-links');
         hamburger.addEventListener('click', () => {
