@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Exam Registration</title>
+<style>
+  body { font-family: "Segoe UI", Arial, sans-serif; background: #f4f7fb; display: flex; flex-direction: column; align-items: center; padding: 25px; color: #333; }
+  h1 { margin-bottom: 25px; color: #2c3e50; font-size: 1.8rem; font-weight: 700; }
+  .card { background: #fff; padding: 25px 30px; border-radius: 14px; box-shadow: 0 6px 14px rgba(0,0,0,0.1); max-width: 520px; width: 100%; margin-bottom: 20px; text-align: center; transition: transform 0.2s; }
+  .card:hover { transform: translateY(-3px); }
+  button { padding: 12px 22px; margin: 8px 6px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: transform 0.2s, background 0.3s; }
+  button:hover { transform: scale(1.05); }
+  .exam-btn { background: #5a85a8; color: #fff; }
+  .exam-btn:hover { background: #4c7494; }
+  .next-btn { background: #4CAF50; color: #fff; }
+  .next-btn:hover { background: #3d9442; }
+  .download-btn { background: #1d72b8; color: #fff; }
+  .download-btn:hover { background: #155a8a; }
+  select, input[type="text"] { width: 95%; padding: 12px; margin: 12px 0; border-radius: 10px; border: 1px solid #ccc; font-size: 1rem; transition: border 0.3s; }
+  select:focus, input[type="text"]:focus { outline: none; border-color: #5a85a8; box-shadow: 0 0 5px rgba(90,133,168,0.5); }
+  .course-list { text-align: left; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px; }
+  .course-checkbox { background: #f1f3f6; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .course-checkbox input[type="checkbox"] { cursor: pointer; }
+  .payment-box { background: #f1f3f6; padding: 20px; border-radius: 12px; box-shadow: inset 0 0 5px rgba(0,0,0,0.1); margin-top: 15px; }
+</style>
+</head>
+<body>
+
+<h1>🎓 Student Portal</h1>
+
+<div id="studentCard" class="card"></div>
+<div class="button-container" id="registerBtnContainer">
+  <button id="registerExamButton" class="exam-btn">Register for Exam</button>
+</div>
+<div id="examOptionsCard" style="display:none;"></div>
+
+<script>
+let fetchedStudent;
+let pollingInterval = null;
+let pollingSemester = null;
+
+// Load student data
+async function loadStudentData() {
+  try {
+    const res = await fetch('http://localhost:3005/admitted-students');
+    fetchedStudent = await res.json();
+    document.getElementById("studentCard").innerHTML = `
+      <h2>${fetchedStudent.studentName}</h2>
+      <p><b>Department:</b> ${fetchedStudent.deptName}</p>
+      <p><b>Session:</b> ${fetchedStudent.studentSession}</p>
+      <p><b>Roll:</b> ${fetchedStudent.rollNumber}</p>
+    `;
+  } catch(e){ alert("Error loading student: "+e.message); }
+}
+loadStudentData();
+
+document.getElementById("registerExamButton").addEventListener("click", showExamOptions);
+
+function showExamOptions() {
+  const container = document.getElementById("examOptionsCard");
+  document.getElementById("registerBtnContainer").style.display = "none";
+
+  container.innerHTML = `
+    <div class="card">
+      <h3>Select Exam Type</h3>
+      <button class="next-btn" onclick="showExamForm('Semester Final')">Semester Final</button>
+      <button class="next-btn" onclick="showExamForm('Improvement')">Improvement</button>
+      <button class="next-btn" onclick="showExamForm('F-Removal')">F-Removal</button>
+      <br><br>
+      <button class="exam-btn" onclick="dismissExamCard()">Dismiss</button>
+    </div>
+  `;
+  container.style.display = "block";
+}
+
+function showExamForm(examType) {
+  const container = document.getElementById("examOptionsCard");
+  let semesterOptions = Array.from({length:8},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join("");
+
+  if(examType === "Semester Final"){
+    container.innerHTML = `
+      <div class="card">
+        <h3>Register for Semester Final</h3>
+        <label for="semesterSelect">Select Semester:</label>
+        <select id="semesterSelect">
+          <option value="">-- Select Semester --</option>
+          ${semesterOptions}
+        </select>
+        <div id="courseContainer" class="course-list" style="display:none;">
+          <p><b>Courses for selected semester:</b></p>
+          <ul id="courseList"></ul>
+        </div>
+        <p><b>Payable Amount:</b> <span style="color:#e67e22">5000</span></p>
+        <button class="next-btn" onclick="showPaymentGateway('Semester Final')">Next</button>
+        <br><br>
+        <button class="exam-btn" onclick="dismissExamCard()">Dismiss</button>
+      </div>
+    `;
+    const semesterSelect = document.getElementById("semesterSelect");
+    const courseContainer = document.getElementById("courseContainer");
+    const courseList = document.getElementById("courseList");
+    semesterSelect.addEventListener("change", () => {
+      const sem = parseInt(semesterSelect.value);
+      if (!sem) { courseContainer.style.display="none"; courseList.innerHTML=""; return;}
+      courseContainer.style.display="block"; courseList.innerHTML="";
+      for(let i=1;i<=10;i++){
+        let li = document.createElement("li");
+        li.textContent = `CSE-${sem}0${i}`;
+        courseList.appendChild(li);
+      }
+    });
+  } else {
+    // Improvement / F-Removal
+    container.innerHTML = `
+      <div class="card">
+        <h3>Register for ${examType}</h3>
+        <label for="currentSemester">Select Current Semester:</label>
+        <select id="currentSemester">
+          <option value="">-- Select Semester --</option>
+          ${semesterOptions}
+        </select>
+        <div id="courseSelectContainer" class="course-list" style="display:none;"></div>
+        <p><b>Payable Amount:</b> <span id="payableAmount" style="color:#e67e22">0</span></p>
+        <button class="next-btn" onclick="showPaymentGateway('${examType}')">Next</button>
+        <br><br>
+        <button class="exam-btn" onclick="dismissExamCard()">Dismiss</button>
+      </div>
+    `;
+    const semesterSelect = document.getElementById("currentSemester");
+    const courseContainer = document.getElementById("courseSelectContainer");
+    const payableEl = document.getElementById("payableAmount");
+    let selectedCourses = [];
+
+    semesterSelect.addEventListener("change", ()=>{
+      const sem = parseInt(semesterSelect.value);
+      selectedCourses=[];
+      payableEl.textContent = "0";
+      if(!sem){ courseContainer.style.display="none"; courseContainer.innerHTML=""; return;}
+      courseContainer.style.display="flex";
+      courseContainer.innerHTML="";
+      for(let s=1;s<=sem;s++){
+        for(let i=1;i<=10;i++){
+          const code = `CSE-${s}0${i}`;
+          const label = document.createElement("label");
+          label.className="course-checkbox";
+          label.innerHTML = `<input type="checkbox" value="${code}"> ${code}`;
+          courseContainer.appendChild(label);
+        }
+      }
+      const checkboxes = courseContainer.querySelectorAll("input[type='checkbox']");
+      checkboxes.forEach(cb=>{
+        cb.addEventListener("change", ()=>{
+          if(cb.checked) selectedCourses.push(cb.value);
+          else selectedCourses = selectedCourses.filter(c=>c!==cb.value);
+          let amount = selectedCourses.length>0 ? 1000 + (selectedCourses.length-1)*300 : 0;
+          payableEl.textContent = amount;
+        });
+      });
+    });
+  }
+}
+
+// Dummy payment gateway
+function showPaymentGateway(examType){
+  let semester, courses=[];
+  if(examType === "Semester Final"){
+    semester = document.getElementById("semesterSelect").value;
+    if(!semester){ alert("Select semester"); return; }
+    for(let i=1;i<=10;i++) courses.push(`CSE-${semester}0${i}`);
+  } else {
+    semester = document.getElementById("currentSemester").value;
+    if(!semester){ alert("Select current semester"); return; }
+    const checkboxes = document.querySelectorAll("#courseSelectContainer input[type='checkbox']:checked");
+    if(checkboxes.length===0){ alert("Select at least one course"); return; }
+    courses = Array.from(checkboxes).map(cb=>cb.value);
+  }
+
+  const container = document.getElementById("examOptionsCard");
+  container.innerHTML = `
+    <div class="card">
+      <h3>Shonar-Bangla Payment Gateway</h3>
+      <div class="payment-box">
+        <p>Amount to pay: <b>${courses.length>0 ? 1000 + (courses.length-1)*300 : 0}</b></p>
+        <button class="next-btn" id="payNowBtn">Pay Now</button>
+      </div>
+      <br>
+      <button class="exam-btn" onclick="dismissExamCard()">Cancel Payment</button>
+    </div>
+  `;
+  document.getElementById("payNowBtn").addEventListener("click", ()=>{
+    const dummyTxnId = "TXN"+Math.floor(Math.random()*1000000);
+    alert(`Payment Successful! Transaction ID: ${dummyTxnId}`);
+    pollingSemester = semester;
+    submitExam(examType, semester, courses, dummyTxnId);
+  });
+}
+
+// Submit exam registration
+async function submitExam(examType, semester, courses, trxID){
+  try{
+    const res = await fetch('http://localhost:3005/register-exam',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        rollNumber: fetchedStudent.rollNumber,
+        eMail: fetchedStudent.eMail,
+        examType, semester, courses,
+        payableAmount:courses.length>0 ? 1000 + (courses.length-1)*300 : 0,
+        trxID
+      })
+    });
+    if(!res.ok) throw new Error("Failed to register request");
+    await res.json();
+    document.getElementById("examOptionsCard").innerHTML = `
+      <div class="card">
+        <h3>📨 Submitted. Waiting for Approval...</h3>
+      </div>
+    `;
+    startPolling();
+  } catch(e){
+    document.getElementById("examOptionsCard").innerHTML = `
+      <div class="card">
+        <h3>❌ Error: ${e.message}</h3>
+        <button class="exam-btn" onclick="dismissExamCard()">Dismiss</button>
+      </div>
+    `;
+  }
+}
+
+// Polling function
+function startPolling(){
+  if(pollingInterval) clearInterval(pollingInterval);
+  pollingInterval = setInterval(async ()=>{
+    try{
+      const res = await fetch(`http://localhost:3005/get-approved-pdf/${fetchedStudent.rollNumber}/${pollingSemester}`);
+      if(res.ok){
+        const data = await res.json();
+        if(data.pdfBase64){
+          clearInterval(pollingInterval);
+          document.getElementById("examOptionsCard").innerHTML = `
+            <div class="card">
+              <h3>✅ Approved!</h3>
+              <p>Your registration has been approved. Click below to download your receipt:</p>
+              <button id="downloadReceiptBtn" class="download-btn">Download Receipt</button>
+            </div>
+          `;
+          document.getElementById("registerBtnContainer").style.display = "block";
+          document.getElementById("downloadReceiptBtn").addEventListener("click", ()=>{
+            const link = document.createElement("a");
+            link.href = `data:application/pdf;base64,${data.pdfBase64}`;
+            link.download = `exam_registration.pdf`;
+            link.click();
+          });
+        }
+      }
+    }catch(e){ console.log("Polling error:", e.message);}
+  },3000);
+}
+
+function dismissExamCard(){
+  document.getElementById("examOptionsCard").style.display="none";
+  document.getElementById("registerBtnContainer").style.display="block";
+}
+</script>
+
+</body>
+</html>

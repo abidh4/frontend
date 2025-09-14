@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Exam Control</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f4f7fb;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #333;
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+      font-size: 1.8rem;
+    }
+    .status-message {
+      margin: 15px 0;
+      font-weight: 500;
+      font-size: 1rem;
+      color: #666;
+      text-align: center;
+    }
+    table {
+      width: 95%;
+      max-width: 1200px;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      font-size: 0.95rem;
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      background: #2c3e50;
+      color: white;
+      font-weight: bold;
+    }
+    tr:nth-child(even) { background-color: #f9f9f9; }
+    tr:hover { background-color: #f1f1f1; }
+    .action-btn {
+      padding: 8px 14px;
+      border-radius: 6px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      margin: 2px;
+      transition: transform 0.2s, background 0.3s;
+    }
+    .action-btn:hover { transform: scale(1.05); }
+    .approve-btn { background: #4CAF50; }
+    .approve-btn:hover { background: #3d9442; }
+    .reject-btn { background: #e74c3c; }
+    .reject-btn:hover { background: #c0392b; }
+  </style>
+</head>
+<body>
+  <h1>📋 Admin Exam Control</h1>
+
+  <div id="status" class="status-message">Loading pending requests...</div>
+  <div id="tableContainer"></div>
+
+  <script>
+    let pollingInterval = null;
+
+    async function fetchPendingRequests() {
+      try {
+        const response = await fetch("http://localhost:3005/pending-exam-req");
+        if (!response.ok) throw new Error("Failed to fetch pending requests");
+        const data = await response.json();
+
+        const statusDiv = document.getElementById("status");
+        const tableContainer = document.getElementById("tableContainer");
+
+        if (!data || data.length === 0) {
+          tableContainer.innerHTML = "";
+          statusDiv.textContent = "✅ No pending requests found.";
+          return;
+        }
+
+        statusDiv.textContent = `📌 ${data.length} pending request(s)`;
+
+        let tableHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Roll Number</th>
+                <th>Email</th>
+                <th>Exam Type</th>
+                <th>Semester</th>
+                <th>Courses</th>
+                <th>Payable Amount</th>
+                <th>Transaction ID</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(req => `
+                <tr id="row-${req._id}">
+                  <td>${req.rollNumber}</td>
+                  <td>${req.eMail}</td>
+                  <td>${req.examType}</td>
+                  <td>${req.semester}</td>
+                  <td>${req.courses.join(", ")}</td>
+                  <td>${req.payableAmount}</td>
+                  <td>${req.trxID}</td>
+                  <td>${new Date(req.date).toLocaleString()}</td>
+                  <td>
+                    <button class="action-btn approve-btn" onclick="approveRequest('${req._id}')">✔ Approve</button>
+                    <button class="action-btn reject-btn" onclick="rejectRequest('${req._id}')">✖ Reject</button>
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+
+        tableContainer.innerHTML = tableHTML;
+
+      } catch (err) {
+        document.getElementById("status").textContent = "❌ Error: " + err.message;
+      }
+    }
+
+    async function approveRequest(id) {
+      try {
+        const res = await fetch(`http://localhost:3005/approve-exam/${id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+        if (!res.ok) throw new Error("Failed to approve request");
+        document.getElementById(`row-${id}`).remove();
+        document.getElementById("status").textContent = "✅ Request approved successfully.";
+      } catch (err) {
+        document.getElementById("status").textContent = "❌ Error approving request: " + err.message;
+      }
+    }
+
+    async function rejectRequest(id) {
+      try {
+        const res = await fetch(`http://localhost:3005/reject-exam/${id}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" }
+        });
+        if (!res.ok) throw new Error("Failed to reject request");
+        document.getElementById(`row-${id}`).remove();
+        document.getElementById("status").textContent = "⚠️ Request rejected successfully.";
+      } catch (err) {
+        document.getElementById("status").textContent = "❌ Error rejecting request: " + err.message;
+      }
+    }
+
+    // Start polling every 3 seconds
+    fetchPendingRequests(); // first fetch
+    pollingInterval = setInterval(fetchPendingRequests, 3000);
+  </script>
+</body>
+</html>

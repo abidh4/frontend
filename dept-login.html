@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Department Login - Comilla University</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="hall-login-style.css">
+</head>
+<body>
+    <form class="login-container" id="deptLoginForm" autocomplete="off">
+        <button type="button" class="back-btn" onclick="window.location.href='index.html'">&larr; Back</button>
+        <div class="login-title">Department Login</div>
+        <div class="warning" id="warningMsg" style="display:none;">There is an error, try again.</div>
+        <label for="dept">Department Name</label>
+        <select id="dept" name="dept" required>
+            <option value="">Select Department</option>
+            <option value="Bangla">Bangla</option>
+            <option value="English">English</option>
+            <option value="Economics">Economics</option>
+            <option value="Public Administration">Public Administration</option>
+            <option value="Anthropology">Anthropology</option>
+            <option value="Archaeology">Archaeology</option>
+            <option value="Mass Communication & Journalism">Mass Communication & Journalism</option>
+            <option value="Information and Communication Technology">Information and Communication Technology</option>
+            <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+            <option value="Physics">Physics</option>
+            <option value="Chemistry">Chemistry</option>
+            <option value="Mathematics">Mathematics</option>
+            <option value="Statistics">Statistics</option>
+            <option value="Pharmacy">Pharmacy</option>
+            <option value="Management Studies">Management Studies</option>
+            <option value="Accounting & Information Systems">Accounting & Information Systems</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Finance & Banking">Finance & Banking</option>
+            <option value="Law">Law</option>
+        </select>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Enter your password">
+        <div style="margin-bottom: 1rem;">
+            <input type="checkbox" id="showPassword" style="margin-right: 6px;">
+            <label for="showPassword" style="font-size:0.98rem; color:#005892; cursor:pointer;">Show Password</label>
+        </div>
+        <div class="button-row">
+            <button type="submit" class="submit-btn">Submit</button>
+            <button type="button" class="clear-btn" id="clearBtn">Clear</button>
+        </div>
+    </form>
+    <script>
+        const deptLoginForm = document.getElementById('deptLoginForm');
+        const passwordInput = document.getElementById('password');
+        const showPassword = document.getElementById('showPassword');
+        const clearBtn = document.getElementById('clearBtn');
+        const warningMsg = document.getElementById('warningMsg');
+
+        showPassword.addEventListener('change', function() {
+            passwordInput.type = this.checked ? 'text' : 'password';
+        });
+
+        clearBtn.addEventListener('click', function() {
+            deptLoginForm.reset();
+            warningMsg.style.display = "none";
+        });
+
+        deptLoginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            warningMsg.style.display = "none";
+
+            const dept = deptLoginForm.dept.value.trim();
+            const password = passwordInput.value;
+
+            // Example API endpoint
+            const apiUrl = '/api/dept-login';
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dept, password })
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    window.location.href = data.redirect || '/dept-dashboard.html';
+                } else {
+                    throw new Error();
+                }
+            } catch {
+                deptLoginForm.reset();
+                warningMsg.textContent = "There is an error, try again.";
+                warningMsg.style.display = "block";
+                setTimeout(() => {
+                    warningMsg.style.display = "none";
+                }, 5000);
+            }
+        });
+    </script>
+    <style>
+        .back-btn {
+            background: none;
+            border: none;
+            color: #005892;
+            font-size: 1rem;
+            margin-bottom: 0.7rem;
+            cursor: pointer;
+            text-align: left;
+            padding: 0;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .back-btn:hover {
+            color: #1791d8;
+            text-decoration: underline;
+        }
+        .warning {
+            background: #ffeded;
+            color: #c0392b;
+            border: 1px solid #e57373;
+            border-radius: 6px;
+            padding: 0.7rem 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1rem;
+            display: none;
+        }
+    </style>
+</body>
+</html>
