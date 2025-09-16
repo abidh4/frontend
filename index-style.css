@@ -1,4 +1,4 @@
-/* Reset and basic styles */
+
 * {
     margin: 0;
     padding: 0;
@@ -11,12 +11,12 @@ body {
     color: #333;
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* Ensures footer sticks at bottom */
+    min-height: 100vh;
 }
 ::-webkit-scrollbar{
     display: none;
 }
-/* Navbar */
+
 nav {
     background-color: #01588a;
     color: white;
@@ -52,7 +52,6 @@ nav {
     font-size: 0.9rem;
 }
 
-/* Navbar links */
 .navbar-links {
     display: flex;
     gap: 20px;
@@ -70,12 +69,10 @@ nav {
     background-color: rgba(255, 255, 255, 0.2);
     border-radius: 5px;
 }
-/* Dropdown container */
 .nav-item.dropdown {
     position: relative;
 }
 
-/* Dropdown menu */
 .dropdown-content {
     display: none;
     position: absolute;
@@ -90,7 +87,6 @@ nav {
     overflow: hidden;
 }
 
-/* Dropdown links */
 .dropdown-content a {
     color: white;
     padding: 10px 15px;
@@ -103,13 +99,11 @@ nav {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Show dropdown on hover */
 .nav-item.dropdown:hover .dropdown-content {
     display: flex;
    
 }
 
-/* Hamburger menu */
 .hamburger {
     display: none;
     flex-direction: column;
@@ -125,11 +119,10 @@ nav {
     border-radius: 2px;
 }
 
-/* Main section with full viewport height */
 main {
     position: relative;
-    flex: 1; /* Fill remaining vertical space */
-    min-height: 100vh; /* Full viewport height */
+    flex: 1; 
+    min-height: 100vh; 
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -142,14 +135,14 @@ main::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('home-background-img.jpg'); /* Replace with your image */
+    background-image: url('home-background-img.jpg');
     background-size: cover;
     background-position: center;
     opacity: 0.5;
     z-index: -1;
 }
 
-/* Sections */
+
 .about-section,
 .facilities-section {
     padding: 60px 20px;
@@ -177,13 +170,13 @@ main::before {
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
-/* Footer */
+
 footer {
     background-color: #0d243b;
     color: white;
     text-align: center;
     padding: 20px 10px;
-    margin-top: auto; /* Stick to bottom */
+    margin-top: auto; 
 }
 
 .footer-dev {
@@ -192,7 +185,7 @@ footer {
     margin-top: 5px;
 }
 
-/* Responsive Design */
+
 @media (max-width: 768px) {
     .navbar-links {
         display: none;
@@ -220,6 +213,6 @@ footer {
     }
 
     .cards-container {
-        grid-template-columns: 1fr; /* Stack cards on mobile */
+        grid-template-columns: 1fr; 
     }
 }
